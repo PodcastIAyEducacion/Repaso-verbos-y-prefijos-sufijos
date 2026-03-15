@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Escape Room: ¡La Gramática Secreta!</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #f5c842;
+    --dark: #1a1025;
+    --purple: #2d1b5e;
+    --card: #231540;
+    --accent1: #7b2fff;
+    --accent2: #ff6b35;
+    --green: #26c95d;
+    --red: #ff4466;
+    --blue: #4dabf7;
+    --text: #f0e8ff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--dark);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .stars {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background: radial-gradient(ellipse at 20% 50%, #2d1b5e44 0%, transparent 70%),
+                radial-gradient(ellipse at 80% 20%, #1a0a3344 0%, transparent 60%);
+  }
+
+  .stars::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 15%, #fff8 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 40%, #fff5 0%, transparent 100%),
+      radial-gradient(1px 1px at 55% 10%, #fff7 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 60%, #fff4 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 30%, #fff6 0%, transparent 100%),
+      radial-gradient(1px 1px at 45% 80%, #fff5 0%, transparent 100%),
+      radial-gradient(2px 2px at 20% 70%, #ffe082aa 0%, transparent 100%),
+      radial-gradient(2px 2px at 60% 90%, #ffe082aa 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 85%, #fff6 0%, transparent 100%);
+  }
+
+  #app {
+    position: relative;
+    z-index: 1;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 20px 16px 40px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .screen { display: none; width: 100%; animation: fadeIn .4s ease; }
+  .screen.active { display: flex; flex-direction: column; align-items: center; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── HEADER / LOGO ── */
+  .logo-title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.6rem, 5vw, 2.8rem);
+    font-weight: 900;
+    color: var(--gold);
+    text-align: center;
+    text-shadow: 0 0 30px #f5c84280, 0 2px 0 #7b2fff88;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+
+  .logo-sub {
+    font-size: .95rem;
+    color: #c8b4ff;
+    text-align: center;
+    margin-bottom: 24px;
+    font-weight: 600;
+  }
+
+  /* ── PROGRESS ── */
+  .progress-bar-wrap {
+    width: 100%;
+    background: #ffffff18;
+    border-radius: 50px;
+    height: 10px;
+    margin-bottom: 22px;
+    overflow: hidden;
+    border: 1px solid #ffffff22;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent1), var(--gold));
+    border-radius: 50px;
+    transition: width .5s cubic-bezier(.4,0,.2,1);
+  }
+
+  .room-label {
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: var(--gold);
+    font-weight: 700;
+    margin-bottom: 6px;
+    text-align: center;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: linear-gradient(160deg, #2a1a50, #1e1040);
+    border: 1px solid #5a3faa44;
+    border-radius: 20px;
+    padding: 28px 24px;
+    width: 100%;
+    box-shadow: 0 8px 40px #00000060, inset 0 1px 0 #ffffff14;
+  }
+
+  .room-icon {
+    font-size: 3.5rem;
+    text-align: center;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 0 12px currentColor);
+  }
+
+  .room-title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.1rem, 3.5vw, 1.5rem);
+    font-weight: 700;
+    color: var(--gold);
+    text-align: center;
+    margin-bottom: 6px;
+  }
+
+  .room-desc {
+    text-align: center;
+    color: #c8b4ff;
+    font-size: .9rem;
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  /* ── QUESTION ── */
+  .question-counter {
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #9d82d0;
+    margin-bottom: 8px;
+  }
+
+  .question-text {
+    font-size: clamp(1rem, 2.5vw, 1.15rem);
+    font-weight: 700;
+    line-height: 1.5;
+    margin-bottom: 20px;
+    color: #f0e8ff;
+  }
+
+  .answers-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  @media (max-width: 440px) { .answers-grid { grid-template-columns: 1fr; } }
+
+  .ans-btn {
+    background: #ffffff0d;
+    border: 1.5px solid #5a3faa55;
+    border-radius: 12px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: .92rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+    transition: all .18s ease;
+    line-height: 1.35;
+  }
+
+  .ans-btn:hover { background: #5a3faa44; border-color: var(--accent1); transform: translateY(-2px); }
+  .ans-btn.correct { background: #26c95d22; border-color: var(--green); color: var(--green); pointer-events: none; }
+  .ans-btn.wrong   { background: #ff446622; border-color: var(--red);   color: var(--red);   pointer-events: none; }
+  .ans-btn.disabled { opacity: .4; pointer-events: none; }
+
+  .feedback {
+    text-align: center;
+    font-weight: 700;
+    font-size: .95rem;
+    min-height: 24px;
+    margin-bottom: 10px;
+    transition: all .2s;
+  }
+  .feedback.ok  { color: var(--green); }
+  .feedback.err { color: var(--red); }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-block;
+    padding: 14px 32px;
+    border-radius: 50px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    border: none;
+    transition: all .2s ease;
+    text-align: center;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent1), #b24bff);
+    color: #fff;
+    box-shadow: 0 4px 20px #7b2fff55;
+  }
+  .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 28px #7b2fff77; }
+
+  .btn-gold {
+    background: linear-gradient(135deg, var(--gold), #e6a800);
+    color: #1a1025;
+    box-shadow: 0 4px 20px #f5c84255;
+    font-size: 1.05rem;
+  }
+  .btn-gold:hover { transform: translateY(-3px); box-shadow: 0 8px 28px #f5c84277; }
+
+  .btn-next {
+    background: linear-gradient(135deg, #26c95d, #1aa84a);
+    color: #fff;
+    box-shadow: 0 4px 18px #26c95d44;
+    margin-top: 8px;
+    display: none;
+  }
+  .btn-next.visible { display: inline-block; }
+  .btn-next:hover { transform: translateY(-2px); }
+
+  /* ── INTRO SCREEN ── */
+  .intro-art {
+    font-size: 5rem;
+    text-align: center;
+    margin-bottom: 10px;
+    animation: floatAnim 3s ease-in-out infinite;
+  }
+
+  @keyframes floatAnim {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .intro-rooms {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+    margin: 18px 0 24px;
+  }
+
+  .intro-room-pill {
+    background: #ffffff0a;
+    border: 1px solid #5a3faa44;
+    border-radius: 12px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .85rem;
+    font-weight: 700;
+    color: #c8b4ff;
+  }
+
+  .intro-room-pill span { font-size: 1.3rem; }
+
+  /* ── CONGRATS / VICTORY ── */
+  .fireworks {
+    font-size: 3rem;
+    text-align: center;
+    margin-bottom: 10px;
+    animation: bounce .6s ease infinite alternate;
+  }
+  @keyframes bounce { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+  .name-input {
+    width: 100%;
+    background: #ffffff0d;
+    border: 2px solid var(--gold);
+    border-radius: 12px;
+    padding: 14px 18px;
+    color: var(--gold);
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-align: center;
+    outline: none;
+    margin: 14px 0 18px;
+    transition: border-color .2s;
+  }
+  .name-input::placeholder { color: #7b5faa; }
+  .name-input:focus { border-color: #fff; color: #fff; }
+
+  /* ── DIPLOMA ── */
+  #diploma-screen .card {
+    background: linear-gradient(160deg, #2a1a50, #1e1040);
+    border: 2px solid var(--gold);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .diploma-frame {
+    border: 3px double var(--gold);
+    border-radius: 12px;
+    padding: 28px 20px;
+    position: relative;
+  }
+
+  .diploma-frame::before, .diploma-frame::after {
+    content: '✦';
+    position: absolute;
+    color: var(--gold);
+    font-size: 1.2rem;
+    opacity: .6;
+  }
+  .diploma-frame::before { top: 8px; left: 12px; }
+  .diploma-frame::after  { bottom: 8px; right: 12px; }
+
+  .diploma-title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.4rem, 4vw, 2rem);
+    color: var(--gold);
+    margin-bottom: 6px;
+    text-shadow: 0 0 20px #f5c84260;
+  }
+
+  .diploma-subtitle {
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    color: #9d82d0;
+    margin-bottom: 16px;
+  }
+
+  .diploma-name {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.5rem, 4.5vw, 2.2rem);
+    color: #fff;
+    font-weight: 900;
+    margin: 10px 0 16px;
+    text-shadow: 0 0 30px #7b2fff;
+  }
+
+  .diploma-body {
+    color: #c8b4ff;
+    font-size: .9rem;
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
+
+  .diploma-seal {
+    font-size: 3rem;
+    margin: 10px 0;
+    filter: drop-shadow(0 0 12px var(--gold));
+  }
+
+  .diploma-date {
+    font-size: .78rem;
+    color: #7b5faa;
+    margin-top: 8px;
+  }
+
+  .badge-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 14px 0;
+  }
+
+  .badge {
+    background: #ffffff0d;
+    border: 1px solid var(--gold);
+    border-radius: 50px;
+    padding: 5px 14px;
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--gold);
+  }
+
+  .print-btn {
+    background: transparent;
+    border: 1.5px solid var(--gold);
+    color: var(--gold);
+    padding: 10px 24px;
+    border-radius: 50px;
+    font-family: 'Nunito', sans-serif;
+    font-size: .88rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 14px;
+    transition: all .2s;
+  }
+  .print-btn:hover { background: var(--gold); color: var(--dark); }
+
+  /* ── ROOM SUCCESS BANNER ── */
+  .room-success {
+    background: linear-gradient(135deg, #26c95d22, #1aa84a11);
+    border: 1.5px solid var(--green);
+    border-radius: 14px;
+    padding: 16px;
+    text-align: center;
+    margin: 12px 0;
+    display: none;
+  }
+  .room-success.show { display: block; animation: fadeIn .3s ease; }
+  .room-success-icon { font-size: 2rem; }
+  .room-success-text { font-weight: 700; color: var(--green); margin-top: 4px; }
+
+  @media print {
+    .stars, .progress-bar-wrap, .room-label, .print-btn, .btn { display: none !important; }
+    body { background: white; color: black; }
+    .card { background: white; border: 2px solid gold; color: black; box-shadow: none; }
+    .diploma-title { color: #b8860b; }
+    .diploma-name { color: #222; text-shadow: none; }
+    .diploma-body, .diploma-subtitle, .diploma-date { color: #555; }
+    .badge { border-color: #b8860b; color: #b8860b; background: transparent; }
+    .diploma-frame::before, .diploma-frame::after { color: #b8860b; }
+    .diploma-frame { border-color: #b8860b; }
+  }
+</style>
+</head>
+<body>
+<div class="stars"></div>
+<div id="app">
+
+  <!-- ══════════ INTRO ══════════ -->
+  <div id="intro-screen" class="screen active">
+    <div class="intro-art">🔐</div>
+    <div class="logo-title">¡La Gramática Secreta!</div>
+    <div class="logo-sub">Escape Room · 4.º de Primaria · Lengua Castellana</div>
+    <div class="card">
+      <p style="text-align:center; color:#c8b4ff; line-height:1.6; margin-bottom:16px;">
+        Un malvado hechizo ha encerrado las palabras en <strong style="color:var(--gold)">4 cámaras secretas</strong>. Solo tú, con tu conocimiento de gramática, puedes liberarlas. ¿Aceptas el reto?
+      </p>
+      <div class="intro-rooms">
+        <div class="intro-room-pill"><span>🌀</span> Subjuntivo e Imperativo</div>
+        <div class="intro-room-pill"><span>⏳</span> Tiempos Verbales</div>
+        <div class="intro-room-pill"><span>👤</span> Formas Personales</div>
+        <div class="intro-room-pill"><span>🔤</span> Prefijos y Sufijos</div>
+      </div>
+      <div style="text-align:center;">
+        <button class="btn btn-gold" onclick="startGame()">⚔️ ¡Empezar la aventura!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ ROOM SCREENS ══════════ -->
+  <div id="room-screen" class="screen">
+    <div class="room-label" id="room-label-text">Sala 1 de 4</div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="card">
+      <div class="room-icon" id="room-icon">🌀</div>
+      <div class="room-title" id="room-title">Sala del Subjuntivo</div>
+      <div class="room-desc" id="room-desc">Supera las preguntas para abrir el primer candado</div>
+
+      <div id="question-area">
+        <div class="question-counter" id="q-counter">Pregunta 1 de 3</div>
+        <div class="question-text" id="q-text"></div>
+        <div class="answers-grid" id="answers-grid"></div>
+        <div class="feedback" id="feedback"></div>
+        <div style="text-align:center;">
+          <button class="btn btn-next" id="next-btn" onclick="nextStep()">Siguiente ➜</button>
+        </div>
+      </div>
+
+      <div class="room-success" id="room-success">
+        <div class="room-success-icon">🔓</div>
+        <div class="room-success-text" id="room-success-text">¡Candado abierto! Pasas a la siguiente sala.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ VICTORY ══════════ -->
+  <div id="victory-screen" class="screen">
+    <div class="fireworks">🎉</div>
+    <div class="logo-title" style="font-size:clamp(1.3rem,4vw,2rem); margin-bottom:4px;">¡Has roto el hechizo!</div>
+    <div class="logo-sub">Todas las palabras están libres gracias a ti</div>
+    <div class="card" style="text-align:center;">
+      <p style="color:#c8b4ff; margin-bottom:4px; line-height:1.6;">Has superado las <strong style="color:var(--gold)">4 salas</strong> de la Gramática Secreta. Escribe tu nombre para recibir tu diploma de campeón/a.</p>
+      <input type="text" class="name-input" id="student-name" placeholder="Escribe tu nombre aquí..." maxlength="40" />
+      <button class="btn btn-gold" onclick="showDiploma()">🏆 ¡Ver mi diploma!</button>
+    </div>
+  </div>
+
+  <!-- ══════════ DIPLOMA ══════════ -->
+  <div id="diploma-screen" class="screen">
+    <div class="card">
+      <div class="diploma-frame">
+        <div class="diploma-title">🏆 Diploma de Honor 🏆</div>
+        <div class="diploma-subtitle">Escape Room · La Gramática Secreta</div>
+        <div class="diploma-seal">⭐</div>
+        <div class="diploma-body">Este diploma acredita que</div>
+        <div class="diploma-name" id="diploma-name">—</div>
+        <div class="diploma-body">
+          ha completado con éxito las <strong style="color:var(--gold)">4 salas</strong> de la Gramática Secreta,<br>
+          demostrando dominio de:<br>
+        </div>
+        <div class="badge-row">
+          <div class="badge">🌀 Subjuntivo e Imperativo</div>
+          <div class="badge">⏳ Tiempos Verbales</div>
+          <div class="badge">👤 Formas Personales</div>
+          <div class="badge">🔤 Prefijos y Sufijos</div>
+        </div>
+        <div class="diploma-body" style="margin-top:10px;">
+          Ha roto el hechizo que aprisionaba las palabras<br>y merece el título de<br>
+          <strong style="color:var(--gold); font-size:1.05rem;">🎖️ Guardián/a de la Gramática 🎖️</strong>
+        </div>
+        <div class="diploma-date" id="diploma-date"></div>
+      </div>
+      <div style="text-align:center; margin-top:16px; display:flex; flex-direction:column; align-items:center; gap:10px;">
+        <button class="print-btn" onclick="window.print()">🖨️ Imprimir diploma</button>
+        <button class="btn btn-primary" onclick="restartGame()" style="font-size:.88rem; padding:10px 22px;">🔄 Jugar de nuevo</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════
+//  DATA
+// ════════════════════════════════════════════
+const rooms = [
+  {
+    id: 'sala1',
+    icon: '🌀',
+    title: 'Sala del Subjuntivo y el Imperativo',
+    desc: 'Responde correctamente para abrir el primer candado.',
+    color: '#7b2fff',
+    questions: [
+      {
+        text: '¿Cuál de estas formas verbales está en modo subjuntivo?',
+        answers: ['cantó', 'cante', 'cantará', 'cantaba'],
+        correct: 1,
+        explanation: '¡Correcto! "Cante" es presente de subjuntivo del verbo cantar.'
+      },
+      {
+        text: '¿Cuál es la forma correcta del imperativo para "tú" del verbo HABLAR?',
+        answers: ['Hablas', 'Hable', 'Habla', 'Hablarás'],
+        correct: 2,
+        explanation: '¡Bien! "Habla" es el imperativo para "tú".'
+      },
+      {
+        text: 'Elige la oración que contiene un verbo en subjuntivo:',
+        answers: [
+          'María canta muy bien.',
+          'Ojalá María cante bien.',
+          'María cantó ayer.',
+          'María cantará mañana.'
+        ],
+        correct: 1,
+        explanation: '¡Exacto! "Ojalá" pide subjuntivo: "cante".'
+      },
+      {
+        text: '¿Qué modo expresa órdenes o mandatos directos?',
+        answers: ['Indicativo', 'Subjuntivo', 'Imperativo', 'Condicional'],
+        correct: 2,
+        explanation: '¡Perfecto! El imperativo se usa para dar órdenes: "¡Estudia!"'
+      }
+    ]
+  },
+  {
+    id: 'sala2',
+    icon: '⏳',
+    title: 'Sala de los Tiempos Verbales',
+    desc: 'Pasado, presente o futuro… ¡elige bien!',
+    color: '#ff6b35',
+    questions: [
+      {
+        text: '"Ayer comí una manzana." El verbo está en:',
+        answers: ['Presente', 'Futuro', 'Pasado', 'Imperativo'],
+        correct: 2,
+        explanation: '¡Correcto! "Comí" es pretérito perfecto simple: pasado.'
+      },
+      {
+        text: '¿Cuál de estos verbos está en tiempo futuro?',
+        answers: ['jugaba', 'juega', 'jugará', 'jugué'],
+        correct: 2,
+        explanation: '¡Bien! "Jugará" indica una acción que ocurrirá en el futuro.'
+      },
+      {
+        text: '"Todos los días leo un libro." El verbo expresa:',
+        answers: ['Una acción futura', 'Una acción pasada', 'Una acción habitual en el presente', 'Una orden'],
+        correct: 2,
+        explanation: '¡Exacto! "Leo" está en presente e indica una acción habitual.'
+      },
+      {
+        text: 'Elige la oración donde el verbo está en FUTURO:',
+        answers: [
+          'Ayer llovió mucho.',
+          'Ahora hace sol.',
+          'Mañana iremos al parque.',
+          'La semana pasada nevó.'
+        ],
+        correct: 2,
+        explanation: '¡Perfecto! "Iremos" es futuro imperfecto de indicativo.'
+      }
+    ]
+  },
+  {
+    id: 'sala3',
+    icon: '👤',
+    title: 'Sala de las Formas Personales',
+    desc: 'Persona, número, tiempo… ¡tú puedes!',
+    color: '#4dabf7',
+    questions: [
+      {
+        text: '¿Cuál de estas formas es una forma PERSONAL del verbo?',
+        answers: ['Cantar', 'Cantando', 'Cantado', 'Canto'],
+        correct: 3,
+        explanation: '¡Correcto! "Canto" indica persona (yo) y tiempo. Las otras son formas no personales.'
+      },
+      {
+        text: '"Nosotros corremos en el parque." ¿En qué persona y número está el verbo?',
+        answers: [
+          '1.ª persona singular',
+          '2.ª persona plural',
+          '1.ª persona plural',
+          '3.ª persona singular'
+        ],
+        correct: 2,
+        explanation: '¡Bien! "Corremos" = nosotros = 1.ª persona del plural.'
+      },
+      {
+        text: '¿Cuál de estas NO es una forma personal del verbo?',
+        answers: ['Vivo', 'Viviendo', 'Vivís', 'Viviremos'],
+        correct: 1,
+        explanation: '¡Exacto! El gerundio "viviendo" es una forma no personal: no indica persona.'
+      },
+      {
+        text: '¿Qué persona verbal corresponde a "vosotros cantáis"?',
+        answers: [
+          '1.ª persona plural',
+          '2.ª persona plural',
+          '3.ª persona plural',
+          '2.ª persona singular'
+        ],
+        correct: 1,
+        explanation: '¡Perfecto! "Vosotros" es la 2.ª persona del plural.'
+      }
+    ]
+  },
+  {
+    id: 'sala4',
+    icon: '🔤',
+    title: 'Sala de Prefijos y Sufijos',
+    desc: '¡El último candado! Muestra lo que sabes de formación de palabras.',
+    color: '#26c95d',
+    questions: [
+      {
+        text: 'En la palabra "deshacer", ¿qué prefijo se usa?',
+        answers: ['hacer-', 'des-', '-er', 'ha-'],
+        correct: 1,
+        explanation: '¡Correcto! "Des-" es un prefijo que significa negación o contrario.'
+      },
+      {
+        text: '¿Qué significa el prefijo "re-" en la palabra "rehacer"?',
+        answers: ['Contra', 'De nuevo', 'Sin', 'Antes de'],
+        correct: 1,
+        explanation: '¡Bien! "Re-" indica repetición: rehacer = hacer de nuevo.'
+      },
+      {
+        text: 'En la palabra "panadero", el sufijo "-ero" indica:',
+        answers: [
+          'Una acción',
+          'Un lugar',
+          'Un oficio o persona',
+          'Una negación'
+        ],
+        correct: 2,
+        explanation: '¡Exacto! "-ero" indica oficio: panadero = quien hace o vende pan.'
+      },
+      {
+        text: '¿Cuál de estas palabras tiene SUFIJO?',
+        answers: ['perro', 'camionero', 'árbol', 'luz'],
+        correct: 1,
+        explanation: '¡Perfecto! "Camion-ero" tiene el sufijo "-ero" (oficio).'
+      }
+    ]
+  }
+];
+
+// ════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════
+let currentRoom = 0;
+let currentQ    = 0;
+let answered    = false;
+
+// ════════════════════════════════════════════
+//  NAVIGATION HELPERS
+// ════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startGame() {
+  currentRoom = 0;
+  currentQ    = 0;
+  showScreen('room-screen');
+  loadRoom();
+}
+
+function restartGame() {
+  showScreen('intro-screen');
+}
+
+// ════════════════════════════════════════════
+//  ROOM LOADER
+// ════════════════════════════════════════════
+function loadRoom() {
+  const r = rooms[currentRoom];
+  document.getElementById('room-label-text').textContent = `Sala ${currentRoom + 1} de ${rooms.length}`;
+  document.getElementById('room-icon').textContent  = r.icon;
+  document.getElementById('room-title').textContent = r.title;
+  document.getElementById('room-desc').textContent  = r.desc;
+  document.getElementById('room-success').classList.remove('show');
+  updateProgress();
+  loadQuestion();
+}
+
+function updateProgress() {
+  const total = rooms.reduce((a, r) => a + r.questions.length, 0);
+  const done  = rooms.slice(0, currentRoom).reduce((a, r) => a + r.questions.length, 0) + currentQ;
+  document.getElementById('progress-fill').style.width = Math.round((done / total) * 100) + '%';
+}
+
+// ════════════════════════════════════════════
+//  QUESTION LOADER
+// ════════════════════════════════════════════
+function loadQuestion() {
+  const r = rooms[currentRoom];
+  const q = r.questions[currentQ];
+  answered = false;
+
+  document.getElementById('question-area').style.display = '';
+  document.getElementById('q-counter').textContent = `Pregunta ${currentQ + 1} de ${r.questions.length}`;
+  document.getElementById('q-text').textContent = q.text;
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('next-btn').classList.remove('visible');
+
+  const grid = document.getElementById('answers-grid');
+  grid.innerHTML = '';
+  q.answers.forEach((ans, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'ans-btn';
+    btn.textContent = ['A) ', 'B) ', 'C) ', 'D) '][i] + ans;
+    btn.addEventListener('click', () => checkAnswer(i, q));
+    grid.appendChild(btn);
+  });
+
+  updateProgress();
+}
+
+function checkAnswer(idx, q) {
+  if (answered) return;
+  answered = true;
+
+  const btns = document.querySelectorAll('.ans-btn');
+  btns.forEach((b, i) => {
+    if (i === q.correct) b.classList.add('correct');
+    else b.classList.add(i === idx ? 'wrong' : 'disabled');
+  });
+
+  const fb = document.getElementById('feedback');
+  if (idx === q.correct) {
+    fb.textContent = '✅ ' + q.explanation;
+    fb.className = 'feedback ok';
+    document.getElementById('next-btn').classList.add('visible');
+    document.getElementById('next-btn').textContent =
+      (currentQ + 1 < rooms[currentRoom].questions.length) ? 'Siguiente pregunta ➜' : '¡Abrir candado! 🔓';
+  } else {
+    fb.textContent = '❌ Respuesta incorrecta. La correcta era: ' + ['A', 'B', 'C', 'D'][q.correct] + '. Toca "Siguiente" para continuar.';
+    fb.className = 'feedback err';
+    document.getElementById('next-btn').classList.add('visible');
+    document.getElementById('next-btn').textContent =
+      (currentQ + 1 < rooms[currentRoom].questions.length) ? 'Siguiente pregunta ➜' : '¡Abrir candado! 🔓';
+  }
+}
+
+function nextStep() {
+  currentQ++;
+  const r = rooms[currentRoom];
+
+  if (currentQ < r.questions.length) {
+    loadQuestion();
+  } else {
+    // Room complete
+    document.getElementById('question-area').style.display = 'none';
+    const success = document.getElementById('room-success');
+    success.classList.add('show');
+    document.getElementById('room-success-text').textContent =
+      currentRoom < rooms.length - 1
+        ? `🔓 ¡Candado ${currentRoom + 1} abierto! Avanzas a la sala ${currentRoom + 2}.`
+        : '🏆 ¡Has abierto el último candado! ¡Eres increíble!';
+    document.getElementById('next-btn').textContent =
+      currentRoom < rooms.length - 1 ? 'Ir a la siguiente sala ➜' : '¡Ver mi diploma! 🎉';
+    document.getElementById('next-btn').classList.add('visible');
+    document.getElementById('next-btn').onclick = advanceRoom;
+    updateProgress();
+  }
+}
+
+function advanceRoom() {
+  currentRoom++;
+  currentQ = 0;
+  document.getElementById('next-btn').onclick = nextStep;
+
+  if (currentRoom < rooms.length) {
+    loadRoom();
+  } else {
+    // All rooms done
+    document.getElementById('progress-fill').style.width = '100%';
+    showScreen('victory-screen');
+    document.getElementById('student-name').value = '';
+    document.getElementById('student-name').focus();
+  }
+}
+
+// ════════════════════════════════════════════
+//  DIPLOMA
+// ════════════════════════════════════════════
+function showDiploma() {
+  const name = document.getElementById('student-name').value.trim();
+  if (!name) {
+    document.getElementById('student-name').focus();
+    document.getElementById('student-name').style.borderColor = 'var(--red)';
+    setTimeout(() => document.getElementById('student-name').style.borderColor = 'var(--gold)', 1200);
+    return;
+  }
+  document.getElementById('diploma-name').textContent = name;
+  const now = new Date();
+  document.getElementById('diploma-date').textContent =
+    `Fecha: ${now.getDate()} de ${['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][now.getMonth()]} de ${now.getFullYear()}`;
+  showScreen('diploma-screen');
+}
+</script>
+</body>
+</html>
